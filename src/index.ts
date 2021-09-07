@@ -1,34 +1,29 @@
 #!/usr/bin/env node
 
-import * as child from 'child_process';
+import * as minimist from 'minimist';
 import * as os from 'os';
-import { program } from 'commander'
 
-function displayMessage(process: child.ChildProcess) {
+import { ChildProcess, exec } from 'child_process';
+
+const SEPARATOR = /!/g;
+const options = minimist(process.argv.splice(2));
+const platform = os.type();
+
+function displayMessage(process: ChildProcess) {
     process.stdout?.on(`data`, (data) => {
-        console.log(`${data}`);
+        console.log(data);
     });
 
     process.stderr?.on(`data`, (data) => {
-        console.error(`${data}`);
+        console.error(data);
     });
 }
 
 function loadScript(command: string) {
-    const process = child.exec(command);
+    command = command.replace(SEPARATOR, ` `);
+    const process = exec(command);
     displayMessage(process);
 }
-
-
-program
-    .version(`0.0.1`)
-    .option(`-w, --windows <command>`, `Windows command`)
-    .option(`-l, --linux <command>`, `Linux command`);
-
-program.parse(process.argv);
-const options = program.opts();
-
-const platform = os.type();
 
 if(options.windows && platform === `Windows_NT`) {
     loadScript(options.windows);
